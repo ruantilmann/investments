@@ -5,3 +5,5 @@ export const newInvestmentSchema = z.object({
   amount: z.number().positive({ message: 'Amount must be a positive number' }),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { message: 'Invalid date format. Please use YYYY-MM-DD.' }),
 });
+
+export type NewInvestmentInput = z.infer<typeof newInvestmentSchema>;
