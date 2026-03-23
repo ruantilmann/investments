@@ -10,16 +10,74 @@ datasource db {
   provider = "sqlite"
 }
 
+enum InvestmentStatus {
+  ACTIVE
+  WITHDRAWN
+  CANCELLED
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  name      String
+  email     String    @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  wallet    Wallet?
+
+  @@map("users")
+}
+
+model Wallet {
+  id        Int          @id @default(autoincrement())
+  userId    Int          @unique
+  balance   Decimal
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  investments Investment[]
+
+  @@map("wallets")
+}
+
 model Investment {
-  id     Int     @id @default(autoincrement())
-  owner  String
-  amount Float
-  date   DateTime
+  id               Int           @id @default(autoincrement())
+  walletId         Int
+  ownerName        String
+  initialAmount    Decimal
+  currentAmount    Decimal
+  yieldAmount      Decimal        @default(0)
+  investedAt       DateTime
+  status           InvestmentStatus @default(ACTIVE)
+  withdrawnAt      DateTime?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  wallet     Wallet      @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  withdraws  Withdraw[]
+
+  @@index([walletId])
+  @@index([status])
+  @@index([walletId, status])
+  @@map("investments")
 }
 
 model Withdraw {
-  id     Int     @id @default(autoincrement())
-  owner  String
-  amount Float
-  date   DateTime
+  id             Int    @id @default(autoincrement())
+  investmentId   Int
+  grossAmount    Decimal
+  taxAmount      Decimal @default(0)
+  netAmount      Decimal
+  profitAmount   Decimal @default(0)
+  withdrawDate   DateTime
+  notes          String?
+  createdAt      DateTime  @default(now())
+
+  investment Investment @relation(fields: [investmentId], references: [id], onDelete: Cascade)
+
+  @@index([investmentId])
+  @@index([withdrawDate])
+  @@index([investmentId, withdrawDate])
+  @@map("withdraws")
 }

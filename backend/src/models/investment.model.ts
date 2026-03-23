@@ -1,9 +1,15 @@
 import { z } from 'zod';
 
 export const newInvestmentSchema = z.object({
-  owner: z.string().min(1, { message: 'Owner is required' }),
-  amount: z.number().positive({ message: 'Amount must be a positive number' }),
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { message: 'Invalid date format. Please use YYYY-MM-DD.' }),
+  walletId: z.number().int(),
+  ownerName: z.string().optional(),
+  title: z.string().optional(),
+  initialAmount: z.number(),
+  currentAmount: z.number(),
+  yieldAmount: z.number().default(0),
+  investedAt: z.date(),
+  status: z.enum(['ACTIVE']).default('ACTIVE'),
+  withdrawnAt: z.date().optional(),
 });
 
 export type investmentInput = z.infer<typeof newInvestmentSchema>;
