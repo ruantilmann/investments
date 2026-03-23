@@ -6,4 +6,4 @@ export const newInvestmentSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { message: 'Invalid date format. Please use YYYY-MM-DD.' }),
 });
 
-export type NewInvestmentInput = z.infer<typeof newInvestmentSchema>;
+export type investmentInput = z.infer<typeof newInvestmentSchema>;

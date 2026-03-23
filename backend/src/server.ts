@@ -1,15 +1,15 @@
 import fastify from 'fastify';
-import { newInvestmentRoute } from './routes/newInvestment.ts';
+import { investmentRoutes } from './routes/investmentsRoutes.ts';
 
 const server = fastify({
   logger: true
 });
 
-server.get('/hello', async (request, reply) => {
+server.get('/hello', async () => {
   return { message: 'Hello, World!' };
 });
 
-server.register(newInvestmentRoute, { prefix: '/investments' });
+server.register(investmentRoutes, { prefix: '/api' });
 
 server.listen({ port: 3000 }, (err, address) => {
   if (err) {
