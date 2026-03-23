@@ -5,4 +5,12 @@ export const newUserSchema = z.object({
     email: z.email({ message: 'Invalid email format' }),
 });
 
+export const listUsersQuerySchema = z.object({
+    page: z.coerce.number().int().positive().default(1),
+    limit: z.coerce.number().int().positive().max(100).default(10),
+    name: z.string().trim().min(1).optional(),
+    email: z.string().trim().email().optional(),
+});
+
 export type UserInput = z.infer<typeof newUserSchema>;
+export type ListUsersQueryInput = z.infer<typeof listUsersQuerySchema>;

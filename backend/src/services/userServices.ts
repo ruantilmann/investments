@@ -1,6 +1,6 @@
 import { Prisma } from '../../generated/prisma/client.ts';
 import { prisma } from '../lib/prisma.ts';
-import type { UserInput } from '../models/user.model.ts';
+import type { UserInput, ListUsersQueryInput } from '../models/user.model.ts';
 
 export class CreateUserService {
     async createUser(userInput: UserInput) {
@@ -11,21 +11,47 @@ export class CreateUserService {
                     email: userInput.email,
                 },
             });
+
             return user;
         } catch (error) {
             if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-                throw new Error(`A user with the email ${userInput.email} already exists`);
+                throw new Error("USER_EMAIL_ALREADY_EXISTS");
             }
+
             throw error;
         }
     }
 }
 
 export class GetAllUsersService {
-    async getAllUsers() {
-        return prisma.user.findMany({
-            orderBy: { id: 'asc' },
-        });
+    async getAllUsers({ page, limit, name, email }: ListUsersQueryInput) {
+        const skip = (page - 1) * limit;
+
+        const where: Prisma.UserWhereInput = {
+            ...(name && { name: { contains: name } }),
+            ...(email && { email: { contains: email } }),
+        };
+
+        const [data, total] = await Promise.all([
+            prisma.user.findMany({
+                where,
+                skip,
+                take: limit,
+                orderBy: { id: 'asc' },
+            }),
+
+            prisma.user.count({ where }),
+        ]);
+
+        return {
+            data,
+            pagination: {
+                page,
+                limit,
+                total,
+                totalPages: Math.ceil(total / limit),
+            }
+        }
     }
 }
 
