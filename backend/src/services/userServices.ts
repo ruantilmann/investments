@@ -1,48 +1,55 @@
+import { Prisma } from '../../generated/prisma/client.ts';
 import { prisma } from '../lib/prisma.ts';
-import type { userInput } from '../models/user.model.ts';
+import type { UserInput } from '../models/user.model.ts';
 
 export class CreateUserService {
-    async createUser(userInput: userInput) {
-        const user = await prisma.user.create({
-            data: {
-                name: userInput.name,
-                email: userInput.email,
-            },
-        });
-        return user;
+    async createUser(userInput: UserInput) {
+        try {
+            const user = await prisma.user.create({
+                data: {
+                    name: userInput.name,
+                    email: userInput.email,
+                },
+            });
+            return user;
+        } catch (error) {
+            if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+                throw new Error(`A user with the email ${userInput.email} already exists`);
+            }
+            throw error;
+        }
     }
 }
 
 export class GetAllUsersService {
     async getAllUsers() {
-        const users = await prisma.user.findMany();
-        return users;
+        return prisma.user.findMany({
+            orderBy: { id: 'asc' },
+        });
     }
 }
 
 export class GetUserById {
     async execute(id: number) {
-        const user = await prisma.user.findUnique({
+        return prisma.user.findUnique({
             where: { id },
         });
-        return user;
     }
 }
 
 export class GetUserByName {
     async execute(name: string) {
-        const user = await prisma.user.findMany({
-            where: { name },
+        return prisma.user.findMany({
+            where: { name: { contains: name } },
+            orderBy: { id: 'asc' },
         });
-        return user;
     }
 }
 
 export class GetUserByEmail {
     async execute(email: string) {
-        const user = await prisma.user.findUnique({
+        return prisma.user.findUnique({
             where: { email },
         });
-        return user;
     }
 }

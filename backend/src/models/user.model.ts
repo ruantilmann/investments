@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
 export const newUserSchema = z.object({
-    name: z.string().min(1, { message: 'Username is required' }),
-    email: z.string().min(1, { message: 'Password is required' }),
+    name: z.string().min(1, { message: 'Name is required' }),
+    email: z.email({ message: 'Invalid email format' }),
 });
 
-export type userInput = z.infer<typeof newUserSchema>;
+export type UserInput = z.infer<typeof newUserSchema>;
