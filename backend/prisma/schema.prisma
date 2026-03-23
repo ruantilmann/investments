@@ -44,7 +44,6 @@ model Wallet {
 model Investment {
   id               Int           @id @default(autoincrement())
   walletId         Int
-  ownerName        String
   initialAmount    Decimal
   currentAmount    Decimal
   yieldAmount      Decimal        @default(0)
