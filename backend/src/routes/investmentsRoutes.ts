@@ -42,7 +42,7 @@ export async function investmentRoutes(server: FastifyInstance) {
 
   /*-----------------------------------------------------------------*/
 
-  server.get('/investments/:owner', async (req, res) => {
+  server.get('/:owner', async (req, res) => {
     try {
       const { owner } = req.params as { owner: string };
 
