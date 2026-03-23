@@ -1,7 +1,13 @@
 import type { FastifyInstance } from "fastify";
 import { ZodError } from "zod";
-import { newInvestmentSchema } from "../models/investment.model";
-import { CreateInvestmentService } from "../services/investmentServices";
+import {
+  listInvestmentsByUserQuerySchema,
+  newInvestmentSchema,
+} from "../models/investment.model";
+import {
+  CreateInvestmentService,
+  GetInvestmentsByUserService,
+} from "../services/investmentServices";
 
 export async function investmentRoutes(server: FastifyInstance) {
   server.post("/newInvestment", async (req, res) => {
@@ -26,6 +32,35 @@ export async function investmentRoutes(server: FastifyInstance) {
 
       if (error instanceof Error && error.message === "INVESTMENT_DATE_IN_FUTURE") {
         return res.status(422).send({ error: "Invested date cannot be in the future" });
+      }
+
+      const errorMessage =
+        error instanceof Error ? error.message : "An unknown error occurred";
+      return res.status(500).send({ error: errorMessage });
+    }
+  });
+
+  server.get("/user/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params as { userId: string };
+      const parsedUserId = Number(userId);
+
+      if (!Number.isInteger(parsedUserId) || parsedUserId <= 0) {
+        return res.status(422).send({ error: "Invalid user id" });
+      }
+
+      const query = listInvestmentsByUserQuerySchema.parse(req.query);
+
+      const getInvestmentsByUserService = new GetInvestmentsByUserService();
+      const response = await getInvestmentsByUserService.getByUserId(parsedUserId, query);
+
+      return res.status(200).send(response);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(422).send({
+          error: "Validation failed",
+          details: error.flatten(),
+        });
       }
 
       const errorMessage =

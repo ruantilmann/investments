@@ -1,7 +1,10 @@
 import { Prisma } from "../../generated/prisma/client.ts";
 import { InvestmentStatus } from "../../generated/prisma/enums.ts";
 import { prisma } from "../lib/prisma.ts";
-import type { InvestmentInput } from "../models/investment.model.ts";
+import type {
+  InvestmentInput,
+  ListInvestmentsByUserQueryInput,
+} from "../models/investment.model.ts";
 
 export class CreateInvestmentService {
   async createInvestment(input: InvestmentInput) {
@@ -33,5 +36,37 @@ export class CreateInvestmentService {
     });
 
     return investment;
+  }
+}
+
+export class GetInvestmentsByUserService {
+  async getByUserId(userId: number, query: ListInvestmentsByUserQueryInput) {
+    const { page, limit, status } = query;
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.InvestmentWhereInput = {
+      wallet: { userId },
+      ...(status ? { status } : {}),
+    };
+
+    const [data, total] = await Promise.all([
+      prisma.investment.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: [{ investedAt: "desc" }, { id: "desc" }],
+      }),
+      prisma.investment.count({ where }),
+    ]);
+
+    return {
+      data,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 }
