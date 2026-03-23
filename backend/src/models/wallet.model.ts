@@ -6,3 +6,5 @@ export const newWalletSchema = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
 });
+
+export type WalletInput = z.infer<typeof newWalletSchema>;
