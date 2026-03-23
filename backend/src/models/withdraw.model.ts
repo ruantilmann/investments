@@ -1,9 +1,9 @@
 import { z } from 'zod';
 
 export const newWithdrawSchema = z.object({
-    owner: z.string().min(1, { message: 'Owner is required' }),
-    amount: z.number().positive({ message: 'Amount must be a positive number' }),
-    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { message: 'Invalid date format. Please use YYYY-MM-DD.' }),
+  investmentId: z.number().int().positive({ message: 'Investment ID must be a positive integer' }),
+  withdrawDate: z.coerce.date({ message: 'Invalid date format. Please use YYYY-MM-DD.' }),
+  notes: z.string().trim().max(500).optional(),
 });
 
-export type withdrawInput = z.infer<typeof newWithdrawSchema>;
+export type WithdrawInput = z.infer<typeof newWithdrawSchema>;
