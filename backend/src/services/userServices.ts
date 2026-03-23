@@ -5,14 +5,28 @@ import type { UserInput, ListUsersQueryInput } from '../models/user.model.ts';
 export class CreateUserService {
     async createUser(userInput: UserInput) {
         try {
-            const user = await prisma.user.create({
-                data: {
-                    name: userInput.name,
-                    email: userInput.email,
-                },
+            const createdUser = await prisma.$transaction(async (tx) => {
+                const user = await tx.user.create({
+                    data: {
+                        name: userInput.name,
+                        email: userInput.email,
+                    },
+                });
+                
+                await tx.wallet.create({
+                    data: {
+                        userId: user.id,
+                        balance: new Prisma.Decimal(0),
+                    },
+                });
+
+                return tx.user.findUnique({
+                    where: { id: user.id },
+                    include: { wallet: true },
+                });
             });
 
-            return user;
+            return createdUser;
         } catch (error) {
             if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
                 throw new Error("USER_EMAIL_ALREADY_EXISTS");
