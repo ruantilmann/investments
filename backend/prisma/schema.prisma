@@ -16,3 +16,10 @@ model Investment {
   amount Float
   date   DateTime
 }
+
+model Withdraw {
+  id     Int     @id @default(autoincrement())
+  owner  String
+  amount Float
+  date   DateTime
+}
