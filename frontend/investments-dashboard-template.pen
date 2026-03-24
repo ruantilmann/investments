@@ -1,0 +1,513 @@
+{
+  "version": "1",
+  "children": [
+    {
+      "id": "screen1",
+      "type": "frame",
+      "name": "Investments Dashboard",
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 960,
+      "layout": "horizontal",
+      "gap": 24,
+      "padding": 24,
+      "fill": "#F6F8FA",
+      "children": [
+        {
+          "id": "sidebar1",
+          "type": "frame",
+          "name": "User Panel",
+          "width": 320,
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": 12,
+          "padding": 16,
+          "fill": "#FFFFFF",
+          "stroke": {
+            "align": "inside",
+            "thickness": 1,
+            "fill": "#E5E7EB"
+          },
+          "cornerRadius": 12,
+          "children": [
+            {
+              "id": "usersTitle",
+              "type": "text",
+              "content": "Usuarios",
+              "fontFamily": "Inter",
+              "fontSize": 22,
+              "fontWeight": "700",
+              "fill": "#0F172A"
+            },
+            {
+              "id": "usersSearchBox",
+              "type": "frame",
+              "name": "Search Box",
+              "width": "fill_container",
+              "height": 44,
+              "layout": "horizontal",
+              "alignItems": "center",
+              "padding": [0, 12],
+              "fill": "#FFFFFF",
+              "stroke": {
+                "align": "inside",
+                "thickness": 1,
+                "fill": "#D1D5DB"
+              },
+              "cornerRadius": 10,
+              "children": [
+                {
+                  "id": "usersSearchText",
+                  "type": "text",
+                  "content": "Buscar por nome ou email",
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "400",
+                  "fill": "#64748B"
+                }
+              ]
+            },
+            {
+              "id": "usersList",
+              "type": "frame",
+              "name": "Users List",
+              "width": "fill_container",
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 8,
+              "padding": 8,
+              "fill": "#F8FAFC",
+              "stroke": {
+                "align": "inside",
+                "thickness": 1,
+                "fill": "#E2E8F0"
+              },
+              "cornerRadius": 10,
+              "children": [
+                {
+                  "id": "userItem1",
+                  "type": "frame",
+                  "name": "User Item Active",
+                  "width": "fill_container",
+                  "height": 52,
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "padding": [0, 12],
+                  "fill": "#E2FBE8",
+                  "cornerRadius": 8,
+                  "children": [
+                    {
+                      "id": "userItem1Text",
+                      "type": "text",
+                      "content": "Usuario selecionado",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "600",
+                      "fill": "#14532D"
+                    }
+                  ]
+                },
+                {
+                  "id": "userItem2",
+                  "type": "frame",
+                  "name": "User Item",
+                  "width": "fill_container",
+                  "height": 52,
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "padding": [0, 12],
+                  "fill": "#FFFFFF",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#E2E8F0"
+                  },
+                  "cornerRadius": 8,
+                  "children": [
+                    {
+                      "id": "userItem2Text",
+                      "type": "text",
+                      "content": "Outro usuario",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "500",
+                      "fill": "#0F172A"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "main1",
+          "type": "frame",
+          "name": "Main Content",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": 16,
+          "children": [
+            {
+              "id": "header1",
+              "type": "frame",
+              "name": "Header",
+              "width": "fill_container",
+              "height": 64,
+              "layout": "horizontal",
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "id": "headerTitle",
+                  "type": "text",
+                  "content": "Resumo de Investimentos",
+                  "fontFamily": "Inter",
+                  "fontSize": 30,
+                  "fontWeight": "700",
+                  "fill": "#0F172A"
+                },
+                {
+                  "id": "headerActions",
+                  "type": "frame",
+                  "name": "Actions",
+                  "layout": "horizontal",
+                  "gap": 10,
+                  "children": [
+                    {
+                      "id": "btnNewInvestment",
+                      "type": "frame",
+                      "name": "Novo Investimento",
+                      "width": 170,
+                      "height": 40,
+                      "layout": "horizontal",
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "fill": "#0B6B3A",
+                      "cornerRadius": 10,
+                      "children": [
+                        {
+                          "id": "btnNewInvestmentText",
+                          "type": "text",
+                          "content": "Novo investimento",
+                          "fontFamily": "Inter",
+                          "fontSize": 14,
+                          "fontWeight": "600",
+                          "fill": "#FFFFFF"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "btnWithdraw",
+                      "type": "frame",
+                      "name": "Novo Saque",
+                      "width": 130,
+                      "height": 40,
+                      "layout": "horizontal",
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "fill": "#0D3B66",
+                      "cornerRadius": 10,
+                      "children": [
+                        {
+                          "id": "btnWithdrawText",
+                          "type": "text",
+                          "content": "Novo saque",
+                          "fontFamily": "Inter",
+                          "fontSize": 14,
+                          "fontWeight": "600",
+                          "fill": "#FFFFFF"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "summaryCards",
+              "type": "frame",
+              "name": "Summary Cards",
+              "width": "fill_container",
+              "height": 120,
+              "layout": "horizontal",
+              "gap": 12,
+              "children": [
+                {
+                  "id": "cardInvested",
+                  "type": "frame",
+                  "name": "Total Investido",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "layout": "vertical",
+                  "gap": 8,
+                  "padding": 14,
+                  "fill": "#FFFFFF",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#E5E7EB"
+                  },
+                  "cornerRadius": 12,
+                  "children": [
+                    {
+                      "id": "cardInvestedLabel",
+                      "type": "text",
+                      "content": "Total investido",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "500",
+                      "fill": "#64748B"
+                    },
+                    {
+                      "id": "cardInvestedValue",
+                      "type": "text",
+                      "content": "R$ 0,00",
+                      "fontFamily": "Inter",
+                      "fontSize": 24,
+                      "fontWeight": "700",
+                      "fill": "#0F172A"
+                    }
+                  ]
+                },
+                {
+                  "id": "cardExpected",
+                  "type": "frame",
+                  "name": "Saldo Esperado",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "layout": "vertical",
+                  "gap": 8,
+                  "padding": 14,
+                  "fill": "#FFFFFF",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#E5E7EB"
+                  },
+                  "cornerRadius": 12,
+                  "children": [
+                    {
+                      "id": "cardExpectedLabel",
+                      "type": "text",
+                      "content": "Saldo esperado ativo",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "500",
+                      "fill": "#64748B"
+                    },
+                    {
+                      "id": "cardExpectedValue",
+                      "type": "text",
+                      "content": "R$ 0,00",
+                      "fontFamily": "Inter",
+                      "fontSize": 24,
+                      "fontWeight": "700",
+                      "fill": "#0F172A"
+                    }
+                  ]
+                },
+                {
+                  "id": "cardNet",
+                  "type": "frame",
+                  "name": "Total Liquido",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "layout": "vertical",
+                  "gap": 8,
+                  "padding": 14,
+                  "fill": "#FFFFFF",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#E5E7EB"
+                  },
+                  "cornerRadius": 12,
+                  "children": [
+                    {
+                      "id": "cardNetLabel",
+                      "type": "text",
+                      "content": "Total sacado liquido",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "500",
+                      "fill": "#64748B"
+                    },
+                    {
+                      "id": "cardNetValue",
+                      "type": "text",
+                      "content": "R$ 0,00",
+                      "fontFamily": "Inter",
+                      "fontSize": 24,
+                      "fontWeight": "700",
+                      "fill": "#0F172A"
+                    }
+                  ]
+                },
+                {
+                  "id": "cardTax",
+                  "type": "frame",
+                  "name": "Imposto Pago",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "layout": "vertical",
+                  "gap": 8,
+                  "padding": 14,
+                  "fill": "#FFFFFF",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#E5E7EB"
+                  },
+                  "cornerRadius": 12,
+                  "children": [
+                    {
+                      "id": "cardTaxLabel",
+                      "type": "text",
+                      "content": "Imposto pago",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "500",
+                      "fill": "#64748B"
+                    },
+                    {
+                      "id": "cardTaxValue",
+                      "type": "text",
+                      "content": "R$ 0,00",
+                      "fontFamily": "Inter",
+                      "fontSize": 24,
+                      "fontWeight": "700",
+                      "fill": "#0F172A"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "tableArea",
+              "type": "frame",
+              "name": "Investments Table",
+              "width": "fill_container",
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 10,
+              "padding": 16,
+              "fill": "#FFFFFF",
+              "stroke": {
+                "align": "inside",
+                "thickness": 1,
+                "fill": "#E5E7EB"
+              },
+              "cornerRadius": 12,
+              "children": [
+                {
+                  "id": "tableTitle",
+                  "type": "text",
+                  "content": "Investimentos do usuario",
+                  "fontFamily": "Inter",
+                  "fontSize": 18,
+                  "fontWeight": "700",
+                  "fill": "#0F172A"
+                },
+                {
+                  "id": "tableHeader",
+                  "type": "frame",
+                  "name": "Table Header",
+                  "width": "fill_container",
+                  "height": 40,
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "fill": "#F8FAFC",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#E5E7EB"
+                  },
+                  "cornerRadius": 8,
+                  "children": [
+                    {
+                      "id": "th1",
+                      "type": "text",
+                      "content": "ID",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "600",
+                      "fill": "#334155"
+                    },
+                    {
+                      "id": "th2",
+                      "type": "text",
+                      "content": "Valor inicial",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "600",
+                      "fill": "#334155"
+                    },
+                    {
+                      "id": "th3",
+                      "type": "text",
+                      "content": "Status",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "600",
+                      "fill": "#334155"
+                    },
+                    {
+                      "id": "th4",
+                      "type": "text",
+                      "content": "Acoes",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "600",
+                      "fill": "#334155"
+                    }
+                  ]
+                },
+                {
+                  "id": "tableRowsPlaceholder",
+                  "type": "frame",
+                  "name": "Rows Placeholder",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "layout": "vertical",
+                  "gap": 8,
+                  "children": [
+                    {
+                      "id": "rowEmpty",
+                      "type": "frame",
+                      "name": "Empty State",
+                      "width": "fill_container",
+                      "height": 72,
+                      "layout": "horizontal",
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "fill": "#FFFFFF",
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "#E2E8F0"
+                      },
+                      "cornerRadius": 8,
+                      "children": [
+                        {
+                          "id": "rowEmptyText",
+                          "type": "text",
+                          "content": "Selecione um usuario para carregar os investimentos",
+                          "fontFamily": "Inter",
+                          "fontSize": 14,
+                          "fontWeight": "500",
+                          "fill": "#64748B"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
