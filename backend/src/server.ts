@@ -3,6 +3,7 @@ import { userRoutes } from './routes/userRoutes';
 import { investmentRoutes } from './routes/investmentsRoutes';
 import { withdrawRoutes } from './routes/withdrawRoutes';
 import { testTimeRoutes } from './routes/testTimeRoutes';
+import { swaggerPlugin } from './plugins/swagger.ts';
 import { isTestTimeApiEnabled } from './time/clockProvider.ts';
 
 const server = fastify({
@@ -12,6 +13,8 @@ const server = fastify({
 server.get('/hello', async () => {
   return { message: 'Hello, World!' };
 });
+
+server.register(swaggerPlugin);
 
 server.register(userRoutes, { prefix: '/api/users' });
 server.register(investmentRoutes, { prefix: '/api/investments' });
