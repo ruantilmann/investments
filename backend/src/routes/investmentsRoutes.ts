@@ -13,8 +13,59 @@ import {
 } from "../services/investmentServices";
 import { getAppClock } from "../time/clockProvider.ts";
 
+const basicErrorSchema = {
+  type: "object",
+  properties: {
+    error: { type: "string" },
+  },
+};
+
+const validationErrorSchema = {
+  type: "object",
+  properties: {
+    error: { type: "string" },
+    details: { type: "object", additionalProperties: true },
+  },
+};
+
+const investmentSchema = {
+  type: "object",
+  properties: {
+    id: { type: "integer" },
+    walletId: { type: "integer" },
+    initialAmount: { type: "string" },
+    currentAmount: { type: "string" },
+    yieldAmount: { type: "string" },
+    investedAt: { type: "string", format: "date-time" },
+    status: { type: "string", enum: ["ACTIVE", "WITHDRAWN", "CANCELLED"] },
+    withdrawnAt: { anyOf: [{ type: "string", format: "date-time" }, { type: "null" }] },
+    createdAt: { type: "string", format: "date-time" },
+    updatedAt: { type: "string", format: "date-time" },
+  },
+};
+
 export async function investmentRoutes(server: FastifyInstance) {
-  server.post("/newInvestment", async (req, res) => {
+  server.post("/newInvestment", {
+    schema: {
+      tags: ["Investments"],
+      summary: "Criar investimento",
+      body: {
+        type: "object",
+        required: ["walletId", "initialAmount", "investedAt"],
+        properties: {
+          walletId: { type: "integer" },
+          initialAmount: { type: "number", minimum: 0 },
+          investedAt: { type: "string", format: "date-time" },
+        },
+      },
+      response: {
+        201: investmentSchema,
+        404: basicErrorSchema,
+        422: validationErrorSchema,
+        500: basicErrorSchema,
+      },
+    },
+  }, async (req, res) => {
     try {
       const body = newInvestmentSchema.parse(req.body);
 
@@ -44,7 +95,49 @@ export async function investmentRoutes(server: FastifyInstance) {
     }
   });
 
-  server.get("/user/:userId", async (req, res) => {
+  server.get("/user/:userId", {
+    schema: {
+      tags: ["Investments"],
+      summary: "Listar investimentos por usuário",
+      params: {
+        type: "object",
+        required: ["userId"],
+        properties: {
+          userId: { type: "integer", minimum: 1 },
+        },
+      },
+      querystring: {
+        type: "object",
+        properties: {
+          page: { type: "integer", minimum: 1 },
+          limit: { type: "integer", minimum: 1, maximum: 100 },
+          status: { type: "string", enum: ["ACTIVE", "WITHDRAWN", "CANCELLED"] },
+        },
+      },
+      response: {
+        200: {
+          type: "object",
+          properties: {
+            data: {
+              type: "array",
+              items: investmentSchema,
+            },
+            pagination: {
+              type: "object",
+              properties: {
+                page: { type: "integer" },
+                limit: { type: "integer" },
+                total: { type: "integer" },
+                totalPages: { type: "integer" },
+              },
+            },
+          },
+        },
+        422: validationErrorSchema,
+        500: basicErrorSchema,
+      },
+    },
+  }, async (req, res) => {
     try {
       const { userId } = userIdParamsSchema.parse(req.params);
 
@@ -68,7 +161,38 @@ export async function investmentRoutes(server: FastifyInstance) {
     }
   });
 
-  server.get("/user/:userId/summary", async (req, res) => {
+  server.get("/user/:userId/summary", {
+    schema: {
+      tags: ["Investments"],
+      summary: "Obter resumo financeiro de investimentos por usuário",
+      params: {
+        type: "object",
+        required: ["userId"],
+        properties: {
+          userId: { type: "integer", minimum: 1 },
+        },
+      },
+      response: {
+        200: {
+          type: "object",
+          properties: {
+            userId: { type: "integer" },
+            totalInvested: { type: "string" },
+            totalActiveInvested: { type: "string" },
+            totalExpectedBalanceActive: { type: "string" },
+            totalWithdrawnGross: { type: "string" },
+            totalWithdrawnNet: { type: "string" },
+            totalTaxPaid: { type: "string" },
+            countInvestments: { type: "integer" },
+            countActive: { type: "integer" },
+            countWithdrawn: { type: "integer" },
+          },
+        },
+        422: validationErrorSchema,
+        500: basicErrorSchema,
+      },
+    },
+  }, async (req, res) => {
     try {
       const { userId } = userIdParamsSchema.parse(req.params);
 
@@ -90,7 +214,42 @@ export async function investmentRoutes(server: FastifyInstance) {
     }
   });
 
-  server.get("/:investmentId", async (req, res) => {
+  server.get("/:investmentId", {
+    schema: {
+      tags: ["Investments"],
+      summary: "Obter detalhes do investimento",
+      params: {
+        type: "object",
+        required: ["investmentId"],
+        properties: {
+          investmentId: { type: "string" },
+        },
+      },
+      response: {
+        200: {
+          type: "object",
+          properties: {
+            id: { type: "integer" },
+            walletId: { type: "integer" },
+            userId: { type: "integer" },
+            initialAmount: { type: "string" },
+            yieldAmount: { type: "string" },
+            expectedBalance: { type: "string" },
+            monthsElapsed: { type: "integer" },
+            investedAt: { type: "string", format: "date-time" },
+            status: { type: "string", enum: ["ACTIVE", "WITHDRAWN", "CANCELLED"] },
+            withdrawnAt: { anyOf: [{ type: "string", format: "date-time" }, { type: "null" }] },
+            withdraw: { anyOf: [{ type: "object", additionalProperties: true }, { type: "null" }] },
+            createdAt: { type: "string", format: "date-time" },
+            updatedAt: { type: "string", format: "date-time" },
+          },
+        },
+        404: basicErrorSchema,
+        422: basicErrorSchema,
+        500: basicErrorSchema,
+      },
+    },
+  }, async (req, res) => {
     try {
       const { investmentId } = req.params as { investmentId: string };
       const parsedInvestmentId = Number(investmentId);
