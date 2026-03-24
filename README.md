@@ -23,6 +23,9 @@ Hoje o repositorio possui o modulo:
 
 - `backend/`: API da aplicacao
 
+Documentacao detalhada do backend:
+- `backend/README.md`
+
 Futuros modulos, como `frontend/`, poderao ser adicionados e documentados separadamente.
 
 ## Setup do projeto
@@ -161,4 +164,5 @@ Quando `ENABLE_TEST_TIME_API="true"` (ou `NODE_ENV=test`), o backend expõe rota
 
 - Este README e propositalmente geral.
 - A documentacao tecnica detalhada de cada modulo sera mantida dentro da propria pasta do modulo.
+- Para a API do backend, use como referencia principal o arquivo `backend/README.md`.
 - Para evolucoes futuras, a recomendacao e manter a raiz como ponto de entrada do workspace e os detalhes de implementacao separados por contexto.

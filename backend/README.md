@@ -167,6 +167,7 @@ As rotas abaixo só são registradas em ambiente controlado (`NODE_ENV=test` ou 
 ### Investimentos
 - `POST /api/investments/newInvestment`
 - `GET /api/investments/user/:userId?page=1&limit=10&status=ACTIVE`
+- `GET /api/investments/user/:userId/summary`
 - `GET /api/investments/:investmentId`
 
 ### Saque
@@ -175,3 +176,24 @@ As rotas abaixo só são registradas em ambiente controlado (`NODE_ENV=test` ou 
 ## Documentação da API
 
 Atualmente a documentação está centralizada neste README.
+
+### Exemplo do endpoint de summary
+
+`GET /api/investments/user/4/summary`
+
+Resposta:
+
+```json
+{
+  "userId": 4,
+  "totalInvested": "1500.00",
+  "totalActiveInvested": "500.00",
+  "totalExpectedBalanceActive": "513.13",
+  "totalWithdrawnGross": "1067.89",
+  "totalWithdrawnNet": "1055.33",
+  "totalTaxPaid": "12.56",
+  "countInvestments": 2,
+  "countActive": 1,
+  "countWithdrawn": 1
+}
+```
