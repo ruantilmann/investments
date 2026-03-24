@@ -3,10 +3,12 @@ import { ZodError } from "zod";
 import {
   listInvestmentsByUserQuerySchema,
   newInvestmentSchema,
+  userIdParamsSchema,
 } from "../models/investment.model";
 import {
   CreateInvestmentService,
   GetInvestmentDetailsService,
+  GetInvestmentSummaryByUserService,
   GetInvestmentsByUserService,
 } from "../services/investmentServices";
 import { getAppClock } from "../time/clockProvider.ts";
@@ -44,17 +46,34 @@ export async function investmentRoutes(server: FastifyInstance) {
 
   server.get("/user/:userId", async (req, res) => {
     try {
-      const { userId } = req.params as { userId: string };
-      const parsedUserId = Number(userId);
-
-      if (!Number.isInteger(parsedUserId) || parsedUserId <= 0) {
-        return res.status(422).send({ error: "Invalid user id" });
-      }
+      const { userId } = userIdParamsSchema.parse(req.params);
 
       const query = listInvestmentsByUserQuerySchema.parse(req.query);
 
       const getInvestmentsByUserService = new GetInvestmentsByUserService();
-      const response = await getInvestmentsByUserService.getByUserId(parsedUserId, query);
+      const response = await getInvestmentsByUserService.getByUserId(userId, query);
+
+      return res.status(200).send(response);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(422).send({
+          error: "Validation failed",
+          details: error.flatten(),
+        });
+      }
+
+      const errorMessage =
+        error instanceof Error ? error.message : "An unknown error occurred";
+      return res.status(500).send({ error: errorMessage });
+    }
+  });
+
+  server.get("/user/:userId/summary", async (req, res) => {
+    try {
+      const { userId } = userIdParamsSchema.parse(req.params);
+
+      const getInvestmentSummaryByUserService = new GetInvestmentSummaryByUserService(getAppClock());
+      const response = await getInvestmentSummaryByUserService.getByUserId(userId);
 
       return res.status(200).send(response);
     } catch (error) {
