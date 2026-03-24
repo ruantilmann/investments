@@ -14,7 +14,7 @@ server.get('/hello', async () => {
   return { message: 'Hello, World!' };
 });
 
-server.register(swaggerPlugin);
+await swaggerPlugin(server);
 
 server.register(userRoutes, { prefix: '/api/users' });
 server.register(investmentRoutes, { prefix: '/api/investments' });
