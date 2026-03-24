@@ -12,5 +12,23 @@ export const listInvestmentsByUserQuerySchema = z.object({
   status: z.enum(['ACTIVE', 'WITHDRAWN', 'CANCELLED']).optional(),
 });
 
+export const userIdParamsSchema = z.object({
+  userId: z.coerce.number().int().positive({ message: 'User ID must be a positive integer' }),
+});
+
 export type InvestmentInput = z.infer<typeof newInvestmentSchema>;
 export type ListInvestmentsByUserQueryInput = z.infer<typeof listInvestmentsByUserQuerySchema>;
+export type UserIdParamsInput = z.infer<typeof userIdParamsSchema>;
+
+export type InvestmentSummaryResponse = {
+  userId: number;
+  totalInvested: string;
+  totalActiveInvested: string;
+  totalExpectedBalanceActive: string;
+  totalWithdrawnGross: string;
+  totalWithdrawnNet: string;
+  totalTaxPaid: string;
+  countInvestments: number;
+  countActive: number;
+  countWithdrawn: number;
+};
