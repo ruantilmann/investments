@@ -53,6 +53,9 @@ No modulo `backend`, garanta que exista um arquivo `.env` com a configuracao do 
 
 ```env
 DATABASE_URL="file:./dev.db"
+
+# Habilita endpoints de controle de tempo apenas para testes locais
+ENABLE_TEST_TIME_API="true"
 ```
 
 ### 5. Gerar o client do Prisma
@@ -104,6 +107,55 @@ Gera o Prisma Client com base no schema atual.
 `npm run migrate`
 
 Executa as migrations do banco de dados com Prisma.
+
+`npm run test`
+
+Executa os testes unitarios e de servicos no backend.
+
+## Endpoints de tempo para testes (test-only)
+
+Quando `ENABLE_TEST_TIME_API="true"` (ou `NODE_ENV=test`), o backend expõe rotas auxiliares para simular passagem de tempo. Elas não devem ser habilitadas em producao.
+
+### Base
+
+`/api/test`
+
+### Rotas
+
+- `GET /api/test/time`
+  - Retorna a data atual do clock de testes.
+- `POST /api/test/time/set`
+  - Define data absoluta.
+  - Payload:
+
+```json
+{
+  "date": "2026-01-15T00:00:00.000Z"
+}
+```
+
+- `POST /api/test/time/advance-months`
+  - Avança o tempo em meses.
+  - Payload:
+
+```json
+{
+  "months": 1
+}
+```
+
+- `POST /api/test/time/advance-days`
+  - Avança o tempo em dias.
+  - Payload:
+
+```json
+{
+  "days": 10
+}
+```
+
+- `POST /api/test/time/reset`
+  - Reseta o clock de testes para `now`.
 
 ## Observacoes
 
