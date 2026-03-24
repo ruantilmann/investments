@@ -1,168 +1,157 @@
 # Investments
 
-Projeto em estrutura modular para gerenciamento de investimentos.
+Projeto full stack para gerenciamento de investimentos, organizado em workspace com modulos independentes.
 
-Este repositório foi pensado para centralizar diferentes modulos da aplicacao, como `backend` e futuros modulos como `frontend`. A documentação detalhada de cada modulo sera mantida em arquivos `README.md` proprios dentro de cada pasta, enquanto este arquivo da raiz apresenta apenas uma visao geral do projeto.
+## Sobre o projeto
+
+Este repositorio representa uma proposta de solucao para o desafio tecnico da Coderockr:
+
+- Desafio original: `https://github.com/Coderockr/backend-test`
+
+O foco principal da proposta esta no modulo `backend/`, com regras de negocio para usuarios, investimentos, rendimento e saque com tributacao por tempo de aplicacao. O modulo `frontend/` foi adicionado para facilitar a validacao funcional do fluxo completo.
+
+## Objetivo da solucao
+
+- Implementar uma API de investimentos com regras de dominio claras e validacao consistente.
 
 ## Tecnologias utilizadas
 
-Atualmente, o projeto utiliza as seguintes tecnologias:
+### Backend
 
-- Node.js
+- Node.js 20+
 - TypeScript
 - Fastify
 - Prisma ORM
-- SQLite (Será alterado para postgres)
+- SQLite (ambiente local)
 - Zod
 - dotenv
-- concurrently
+- Swagger/OpenAPI (`@fastify/swagger` e `@fastify/swagger-ui`)
 
-## Estrutura atual
+### Frontend
 
-Hoje o repositorio possui o modulo:
+- React
+- Vite
+- TypeScript
 
-- `backend/`: API da aplicacao
+## Arquitetura do projeto
 
-Documentacao detalhada do backend:
-- `backend/README.md`
+### Visao geral
 
-Futuros modulos, como `frontend/`, poderao ser adicionados e documentados separadamente.
+- `backend/`: API REST com regras de dominio e persistencia.
+- `frontend/`: interface web para operacao dos casos de uso da API.
+- raiz: orquestracao dos modulos via scripts npm.
 
-## Setup do projeto
+### Backend por camadas
 
-### 1. Clonar o repositorio
+- `src/routes`: definicao de endpoints HTTP e contrato de entrada/saida.
+- `src/services`: orquestracao dos casos de uso e regras de aplicacao.
+- `src/domain`: funcoes de regra de negocio (ex.: calculos financeiros).
+- `src/models`: schemas e validacoes de dados com Zod.
+- `src/time`: abstracao de relogio (sistema e clock de teste).
+- `src/plugins`: plugins da aplicacao (Swagger).
+- `src/lib`: integracoes basicas (Prisma Client).
+- `prisma/`: schema e migrations do banco.
+
+## Estrutura de pastas
+
+```text
+investments/
+|- backend/
+|  |- prisma/
+|  |- src/
+|  |  |- domain/
+|  |  |- lib/
+|  |  |- models/
+|  |  |- plugins/
+|  |  |- routes/
+|  |  |- services/
+|  |  |- time/
+|  |  `- server.ts
+|  `- README.md
+|- frontend/
+|  `- src/
+`- README.md
+```
+
+## Setup
+
+### Pre-requisitos
+
+- Node.js 20+
+- npm
+
+### 1) Clonar repositorio
 
 ```bash
 git clone <url-do-repositorio>
 cd investments
 ```
 
-### 2. Instalar dependencias da raiz
+### 2) Instalar dependencias
 
 ```bash
 npm install
+npm install --prefix backend
+npm install --prefix frontend
 ```
 
-### 3. Instalar dependencias do backend
+### 3) Configurar ambiente do backend
 
-```bash
-cd backend
-npm install
-```
-
-### 4. Configurar variaveis de ambiente
-
-No modulo `backend`, garanta que exista um arquivo `.env` com a configuracao do banco:
+Copie `backend/.env.example` para `backend/.env` e ajuste, se necessario:
 
 ```env
 DATABASE_URL="file:./dev.db"
-
-# Habilita endpoints de controle de tempo apenas para testes locais
 ENABLE_TEST_TIME_API="true"
+NODE_ENV="test"
 ```
 
-### 5. Gerar o client do Prisma
-
-Ainda dentro de `backend`:
+### 4) Gerar client e aplicar migrations
 
 ```bash
-npm run generate
+npm run generate --prefix backend
+npm run migrate --prefix backend
 ```
 
-### 6. Criar ou atualizar o banco com as migrations
+## Como rodar o projeto
+
+### Backend somente
 
 ```bash
-npm run migrate -- --name init
+npm run dev:backend
 ```
 
-### 7. Subir o backend
+API em `http://localhost:3000`.
+
+### Frontend somente
+
+```bash
+npm run dev:frontend
+```
+
+Interface em `http://localhost:5173` (porta padrao do Vite).
+
+### Backend + Frontend juntos
 
 ```bash
 npm run dev
 ```
 
-## Comandos disponiveis
+## Testes e validacoes
 
-### Na raiz do projeto
+### Backend
 
-`npm run dev`
-
-Comando pensado para subir multiplos modulos em paralelo, como `backend` e `frontend`. Deve ser usado quando todos os modulos esperados pelo workspace estiverem implementados e configurados.
-
-`npm run dev:backend`
-
-Inicia apenas o backend a partir da raiz do projeto.
-
-`npm run dev:frontend`
-
-Comando reservado para iniciar o frontend a partir da raiz, quando esse modulo estiver disponivel.
-
-### No modulo `backend/`
-
-`npm run dev`
-
-Inicia o servidor backend em modo de desenvolvimento com recarga automatica.
-
-`npm run generate`
-
-Gera o Prisma Client com base no schema atual.
-
-`npm run migrate`
-
-Executa as migrations do banco de dados com Prisma.
-
-`npm run test`
-
-Executa os testes unitarios e de servicos no backend.
-
-## Endpoints de tempo para testes (test-only)
-
-Quando `ENABLE_TEST_TIME_API="true"` (ou `NODE_ENV=test`), o backend expõe rotas auxiliares para simular passagem de tempo. Elas não devem ser habilitadas em producao.
-
-### Base
-
-`/api/test`
-
-### Rotas
-
-- `GET /api/test/time`
-  - Retorna a data atual do clock de testes.
-- `POST /api/test/time/set`
-  - Define data absoluta.
-  - Payload:
-
-```json
-{
-  "date": "2026-01-15T00:00:00.000Z"
-}
+```bash
+npm run typecheck --prefix backend
+npm run test --prefix backend
 ```
 
-- `POST /api/test/time/advance-months`
-  - Avança o tempo em meses.
-  - Payload:
+## Documentacao da API (Swagger)
 
-```json
-{
-  "months": 1
-}
-```
+Com o backend em execucao:
 
-- `POST /api/test/time/advance-days`
-  - Avança o tempo em dias.
-  - Payload:
+- UI interativa: `http://localhost:3000/documentation`
 
-```json
-{
-  "days": 10
-}
-```
+## Referencias adicionais
 
-- `POST /api/test/time/reset`
-  - Reseta o clock de testes para `now`.
-
-## Observacoes
-
-- Este README e propositalmente geral.
-- A documentacao tecnica detalhada de cada modulo sera mantida dentro da propria pasta do modulo.
-- Para a API do backend, use como referencia principal o arquivo `backend/README.md`.
-- Para evolucoes futuras, a recomendacao e manter a raiz como ponto de entrada do workspace e os detalhes de implementacao separados por contexto.
+- Detalhes tecnicos do backend: `backend/README.md`
+- Desafio base desta solucao: `https://github.com/Coderockr/backend-test`
