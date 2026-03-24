@@ -9,13 +9,14 @@ import {
   GetInvestmentDetailsService,
   GetInvestmentsByUserService,
 } from "../services/investmentServices";
+import { getAppClock } from "../time/clockProvider.ts";
 
 export async function investmentRoutes(server: FastifyInstance) {
   server.post("/newInvestment", async (req, res) => {
     try {
       const body = newInvestmentSchema.parse(req.body);
 
-      const createInvestmentService = new CreateInvestmentService();
+      const createInvestmentService = new CreateInvestmentService(getAppClock());
       const investment = await createInvestmentService.createInvestment(body);
 
       return res.status(201).send(investment);
@@ -79,7 +80,7 @@ export async function investmentRoutes(server: FastifyInstance) {
         return res.status(422).send({ error: "Invalid investment id" });
       }
 
-      const getInvestmentDetailsService = new GetInvestmentDetailsService();
+      const getInvestmentDetailsService = new GetInvestmentDetailsService(getAppClock());
       const investment = await getInvestmentDetailsService.getById(parsedInvestmentId);
 
       return res.status(200).send(investment);

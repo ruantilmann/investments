@@ -2,12 +2,13 @@ import type { FastifyInstance } from "fastify";
 import { ZodError } from "zod";
 import { newWithdrawSchema } from "../models/withdraw.model";
 import { CreateWithdrawService } from "../services/withdrawServices";
+import { getAppClock } from "../time/clockProvider.ts";
 
 export async function withdrawRoutes(server: FastifyInstance) {
   server.post("/newWithdraw", async (req, res) => {
     try {
       const body = newWithdrawSchema.parse(req.body);
-      const createWithdrawService = new CreateWithdrawService();
+      const createWithdrawService = new CreateWithdrawService(getAppClock());
       const withdraw = await createWithdrawService.createWithdraw(body);
 
       return res.status(201).send(withdraw);
