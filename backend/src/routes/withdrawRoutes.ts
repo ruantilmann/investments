@@ -4,8 +4,60 @@ import { newWithdrawSchema } from "../models/withdraw.model";
 import { CreateWithdrawService } from "../services/withdrawServices";
 import { getAppClock } from "../time/clockProvider.ts";
 
+const validationErrorSchema = {
+  type: "object",
+  properties: {
+    error: { type: "string" },
+    details: { type: "object", additionalProperties: true },
+  },
+};
+
+const basicErrorSchema = {
+  type: "object",
+  properties: {
+    error: { type: "string" },
+  },
+};
+
+const withdrawSchema = {
+  type: "object",
+  properties: {
+    id: { type: "integer" },
+    investmentId: { type: "integer" },
+    grossAmount: { type: "string" },
+    taxAmount: { type: "string" },
+    netAmount: { type: "string" },
+    profitAmount: { type: "string" },
+    withdrawDate: { type: "string", format: "date-time" },
+    notes: { anyOf: [{ type: "string" }, { type: "null" }] },
+    createdAt: { type: "string", format: "date-time" },
+    taxRate: { type: "string" },
+  },
+};
+
 export async function withdrawRoutes(server: FastifyInstance) {
-  server.post("/newWithdraw", async (req, res) => {
+  server.post("/newWithdraw", {
+    schema: {
+      tags: ["Withdraw"],
+      summary: "Realizar saque total do investimento",
+      body: {
+        type: "object",
+        required: ["investmentId", "withdrawDate"],
+        properties: {
+          investmentId: { type: "integer", minimum: 1 },
+          withdrawDate: { type: "string", format: "date-time" },
+          notes: { type: "string" },
+        },
+      },
+      response: {
+        201: withdrawSchema,
+        404: basicErrorSchema,
+        409: basicErrorSchema,
+        422: validationErrorSchema,
+        500: basicErrorSchema,
+      },
+    },
+  }, async (req, res) => {
     try {
       const body = newWithdrawSchema.parse(req.body);
       const createWithdrawService = new CreateWithdrawService(getAppClock());
