@@ -4,6 +4,16 @@ const MONTHLY_RATE = new Prisma.Decimal("0.0052");
 const ONE_YEAR_IN_MONTHS = 12;
 const TWO_YEARS_IN_MONTHS = 24;
 
+export type CompoundBalanceResult = {
+  monthsElapsed: number;
+  yieldAmount: Prisma.Decimal;
+  expectedBalance: Prisma.Decimal;
+};
+
+function roundMoney(value: Prisma.Decimal): Prisma.Decimal {
+  return value.toDecimalPlaces(2, Prisma.Decimal.ROUND_HALF_UP);
+}
+
 function startOfDay(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
@@ -32,7 +42,7 @@ export function calculateCompoundBalance(
   initialAmount: Prisma.Decimal,
   investedAt: Date,
   referenceDate: Date,
-) {
+): CompoundBalanceResult {
   const monthsElapsed = countCompletedMonths(investedAt, referenceDate);
 
   let balance = new Prisma.Decimal(initialAmount);
@@ -45,8 +55,8 @@ export function calculateCompoundBalance(
 
   return {
     monthsElapsed,
-    yieldAmount: yieldAmount.toDecimalPlaces(2),
-    expectedBalance: balance.toDecimalPlaces(2),
+    yieldAmount: roundMoney(yieldAmount),
+    expectedBalance: roundMoney(balance),
   };
 }
 
