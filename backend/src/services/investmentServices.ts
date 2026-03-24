@@ -6,6 +6,7 @@ import type { Clock } from "../time/clock.ts";
 import { SystemClock } from "../time/systemClock.ts";
 import type {
   InvestmentInput,
+  InvestmentSummaryResponse,
   ListInvestmentsByUserQueryInput,
 } from "../models/investment.model.ts";
 
@@ -125,6 +126,93 @@ export class GetInvestmentsByUserService {
         total,
         totalPages: Math.ceil(total / limit),
       },
+    };
+  }
+}
+
+export class GetInvestmentSummaryByUserService {
+  constructor(private readonly clock: Clock = new SystemClock()) {}
+
+  async getByUserId(userId: number): Promise<InvestmentSummaryResponse> {
+    const investmentWhere: Prisma.InvestmentWhereInput = {
+      wallet: { userId },
+    };
+
+    const [
+      totalInvestedAggregate,
+      totalActiveAggregate,
+      totalWithdrawnAggregate,
+      countInvestments,
+      countActive,
+      countWithdrawn,
+      activeInvestments,
+    ] = await Promise.all([
+      prisma.investment.aggregate({
+        where: investmentWhere,
+        _sum: { initialAmount: true },
+      }),
+      prisma.investment.aggregate({
+        where: {
+          ...investmentWhere,
+          status: InvestmentStatus.ACTIVE,
+        },
+        _sum: { initialAmount: true },
+      }),
+      prisma.withdraw.aggregate({
+        where: {
+          investment: {
+            wallet: { userId },
+          },
+        },
+        _sum: {
+          grossAmount: true,
+          netAmount: true,
+          taxAmount: true,
+        },
+      }),
+      prisma.investment.count({ where: investmentWhere }),
+      prisma.investment.count({
+        where: {
+          ...investmentWhere,
+          status: InvestmentStatus.ACTIVE,
+        },
+      }),
+      prisma.investment.count({
+        where: {
+          ...investmentWhere,
+          status: InvestmentStatus.WITHDRAWN,
+        },
+      }),
+      prisma.investment.findMany({
+        where: {
+          ...investmentWhere,
+          status: InvestmentStatus.ACTIVE,
+        },
+        select: {
+          initialAmount: true,
+          investedAt: true,
+        },
+      }),
+    ]);
+
+    const now = this.clock.now();
+    const totalExpectedBalanceActive = activeInvestments.reduce(
+      (acc, investment) =>
+        acc.plus(calculateCompoundBalance(investment.initialAmount, investment.investedAt, now).expectedBalance),
+      new Prisma.Decimal(0),
+    );
+
+    return {
+      userId,
+      totalInvested: (totalInvestedAggregate._sum.initialAmount ?? new Prisma.Decimal(0)).toFixed(2),
+      totalActiveInvested: (totalActiveAggregate._sum.initialAmount ?? new Prisma.Decimal(0)).toFixed(2),
+      totalExpectedBalanceActive: totalExpectedBalanceActive.toFixed(2),
+      totalWithdrawnGross: (totalWithdrawnAggregate._sum.grossAmount ?? new Prisma.Decimal(0)).toFixed(2),
+      totalWithdrawnNet: (totalWithdrawnAggregate._sum.netAmount ?? new Prisma.Decimal(0)).toFixed(2),
+      totalTaxPaid: (totalWithdrawnAggregate._sum.taxAmount ?? new Prisma.Decimal(0)).toFixed(2),
+      countInvestments,
+      countActive,
+      countWithdrawn,
     };
   }
 }
