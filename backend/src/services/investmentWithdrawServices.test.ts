@@ -3,7 +3,11 @@ import assert from "node:assert/strict";
 import { Prisma } from "../../generated/prisma/client.ts";
 import { prisma } from "../lib/prisma.ts";
 import { calculateCompoundBalance } from "../domain/investmentMath.ts";
-import { CreateInvestmentService, GetInvestmentSummaryByUserService } from "./investmentServices.ts";
+import {
+  CreateInvestmentService,
+  GetInvestmentSummaryByUserService,
+  UpdateInvestmentStatusService,
+} from "./investmentServices.ts";
 import { CreateWithdrawService } from "./withdrawServices.ts";
 import { FakeClock } from "../time/fakeClock.ts";
 
@@ -220,4 +224,109 @@ test("GetInvestmentSummaryByUserService deve consolidar ativos e retirados", asy
   } finally {
     await cleanupUser(user.id);
   }
+});
+
+test("UpdateInvestmentStatusService deve cancelar investimento ativo", async () => {
+  const tag = `svc-cancel-active-${Date.now()}`;
+  const { user, wallet } = await createUserWithWallet(tag);
+
+  try {
+    const clock = new FakeClock(new Date("2026-03-01"));
+    const createInvestmentService = new CreateInvestmentService(clock);
+    const updateInvestmentStatusService = new UpdateInvestmentStatusService();
+
+    const investment = await createInvestmentService.createInvestment({
+      walletId: wallet.id,
+      initialAmount: 1000,
+      investedAt: new Date("2025-01-15"),
+    });
+
+    const cancelled = await updateInvestmentStatusService.cancelInvestment(investment.id, {
+      status: "CANCELLED",
+      reason: "Cancelamento de teste",
+    });
+
+    assert.equal(cancelled.status, "CANCELLED");
+    assert.equal(cancelled.withdrawnAt, null);
+  } finally {
+    await cleanupUser(user.id);
+  }
+});
+
+test("UpdateInvestmentStatusService deve impedir cancelamento de investimento sacado", async () => {
+  const tag = `svc-cancel-withdrawn-${Date.now()}`;
+  const { user, wallet } = await createUserWithWallet(tag);
+
+  try {
+    const clock = new FakeClock(new Date("2026-03-01"));
+    const createInvestmentService = new CreateInvestmentService(clock);
+    const withdrawService = new CreateWithdrawService(clock);
+    const updateInvestmentStatusService = new UpdateInvestmentStatusService();
+
+    const investment = await createInvestmentService.createInvestment({
+      walletId: wallet.id,
+      initialAmount: 1000,
+      investedAt: new Date("2025-01-15"),
+    });
+
+    await withdrawService.createWithdraw({
+      investmentId: investment.id,
+      withdrawDate: new Date("2026-02-15"),
+      notes: "withdraw before cancel",
+    });
+
+    await assert.rejects(
+      updateInvestmentStatusService.cancelInvestment(investment.id, {
+        status: "CANCELLED",
+        reason: "invalid cancel",
+      }),
+      /INVESTMENT_ALREADY_WITHDRAWN/,
+    );
+  } finally {
+    await cleanupUser(user.id);
+  }
+});
+
+test("UpdateInvestmentStatusService deve impedir segundo cancelamento", async () => {
+  const tag = `svc-cancel-duplicate-${Date.now()}`;
+  const { user, wallet } = await createUserWithWallet(tag);
+
+  try {
+    const clock = new FakeClock(new Date("2026-03-01"));
+    const createInvestmentService = new CreateInvestmentService(clock);
+    const updateInvestmentStatusService = new UpdateInvestmentStatusService();
+
+    const investment = await createInvestmentService.createInvestment({
+      walletId: wallet.id,
+      initialAmount: 1000,
+      investedAt: new Date("2025-01-15"),
+    });
+
+    await updateInvestmentStatusService.cancelInvestment(investment.id, {
+      status: "CANCELLED",
+      reason: "first cancel",
+    });
+
+    await assert.rejects(
+      updateInvestmentStatusService.cancelInvestment(investment.id, {
+        status: "CANCELLED",
+        reason: "second cancel",
+      }),
+      /INVESTMENT_ALREADY_CANCELLED/,
+    );
+  } finally {
+    await cleanupUser(user.id);
+  }
+});
+
+test("UpdateInvestmentStatusService deve retornar erro para investimento inexistente", async () => {
+  const updateInvestmentStatusService = new UpdateInvestmentStatusService();
+
+  await assert.rejects(
+    updateInvestmentStatusService.cancelInvestment(999999999, {
+      status: "CANCELLED",
+      reason: "not found",
+    }),
+    /INVESTMENT_NOT_FOUND/,
+  );
 });

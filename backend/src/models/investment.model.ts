@@ -16,9 +16,20 @@ export const userIdParamsSchema = z.object({
   userId: z.coerce.number().int().positive({ message: 'User ID must be a positive integer' }),
 });
 
+export const investmentIdParamsSchema = z.object({
+  id: z.coerce.number().int().positive({ message: 'Investment ID must be a positive integer' }),
+});
+
+export const updateInvestmentStatusSchema = z.object({
+  status: z.literal('CANCELLED'),
+  reason: z.string().trim().min(1).max(500).optional(),
+});
+
 export type InvestmentInput = z.infer<typeof newInvestmentSchema>;
 export type ListInvestmentsByUserQueryInput = z.infer<typeof listInvestmentsByUserQuerySchema>;
 export type UserIdParamsInput = z.infer<typeof userIdParamsSchema>;
+export type InvestmentIdParamsInput = z.infer<typeof investmentIdParamsSchema>;
+export type UpdateInvestmentStatusInput = z.infer<typeof updateInvestmentStatusSchema>;
 
 export type InvestmentSummaryResponse = {
   userId: number;

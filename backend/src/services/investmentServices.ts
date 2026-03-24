@@ -8,6 +8,7 @@ import type {
   InvestmentInput,
   InvestmentSummaryResponse,
   ListInvestmentsByUserQueryInput,
+  UpdateInvestmentStatusInput,
 } from "../models/investment.model.ts";
 
 export class CreateInvestmentService {
@@ -214,5 +215,32 @@ export class GetInvestmentSummaryByUserService {
       countActive,
       countWithdrawn,
     };
+  }
+}
+
+export class UpdateInvestmentStatusService {
+  async cancelInvestment(investmentId: number, _input: UpdateInvestmentStatusInput) {
+    const investment = await prisma.investment.findUnique({
+      where: { id: investmentId },
+    });
+
+    if (!investment) {
+      throw new Error("INVESTMENT_NOT_FOUND");
+    }
+
+    if (investment.status === InvestmentStatus.WITHDRAWN) {
+      throw new Error("INVESTMENT_ALREADY_WITHDRAWN");
+    }
+
+    if (investment.status === InvestmentStatus.CANCELLED) {
+      throw new Error("INVESTMENT_ALREADY_CANCELLED");
+    }
+
+    return prisma.investment.update({
+      where: { id: investmentId },
+      data: {
+        status: InvestmentStatus.CANCELLED,
+      },
+    });
   }
 }
