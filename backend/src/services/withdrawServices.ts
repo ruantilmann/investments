@@ -3,10 +3,14 @@ import { InvestmentStatus } from "../../generated/prisma/enums.ts";
 import { prisma } from "../lib/prisma.ts";
 import { calculateCompoundBalance, getTaxRate } from "../domain/investmentMath.ts";
 import type { WithdrawInput } from "../models/withdraw.model.ts";
+import type { Clock } from "../time/clock.ts";
+import { SystemClock } from "../time/systemClock.ts";
 
 export class CreateWithdrawService {
+  constructor(private readonly clock: Clock = new SystemClock()) {}
+
   async createWithdraw(input: WithdrawInput) {
-    const today = new Date();
+    const today = this.clock.now();
 
     if (input.withdrawDate > today) {
       throw new Error("WITHDRAW_DATE_IN_FUTURE");

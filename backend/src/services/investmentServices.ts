@@ -2,14 +2,18 @@ import { Prisma } from "../../generated/prisma/client.ts";
 import { InvestmentStatus } from "../../generated/prisma/enums.ts";
 import { prisma } from "../lib/prisma.ts";
 import { calculateCompoundBalance } from "../domain/investmentMath.ts";
+import type { Clock } from "../time/clock.ts";
+import { SystemClock } from "../time/systemClock.ts";
 import type {
   InvestmentInput,
   ListInvestmentsByUserQueryInput,
 } from "../models/investment.model.ts";
 
 export class CreateInvestmentService {
+  constructor(private readonly clock: Clock = new SystemClock()) {}
+
   async createInvestment(input: InvestmentInput) {
-    const today = new Date();
+    const today = this.clock.now();
 
     if (input.investedAt > today) {
       throw new Error("INVESTMENT_DATE_IN_FUTURE");
@@ -41,6 +45,8 @@ export class CreateInvestmentService {
 }
 
 export class GetInvestmentDetailsService {
+  constructor(private readonly clock: Clock = new SystemClock()) {}
+
   async getById(investmentId: number) {
     const investment = await prisma.investment.findUnique({
       where: { id: investmentId },
@@ -59,7 +65,7 @@ export class GetInvestmentDetailsService {
       throw new Error("INVESTMENT_NOT_FOUND");
     }
 
-    const referenceDate = investment.withdrawnAt ?? new Date();
+    const referenceDate = investment.withdrawnAt ?? this.clock.now();
     const calculated = calculateCompoundBalance(
       investment.initialAmount,
       investment.investedAt,
