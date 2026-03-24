@@ -280,6 +280,50 @@ th {
   padding: 10px 12px;
 }
 
+.test-time-panel {
+  background: #ffffff;
+  border: 1px solid #dbe4ee;
+  border-radius: 12px;
+  padding: 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.test-time-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.test-time-header h3 {
+  margin: 0;
+}
+
+.test-time-now {
+  font-size: 13px;
+  color: #334155;
+}
+
+.test-time-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.test-time-form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: end;
+}
+
+.test-time-form label {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+}
+
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -342,6 +386,11 @@ th {
   .cards-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .test-time-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 
 @media (max-width: 640px) {
@@ -359,5 +408,9 @@ th {
 
   .header-actions button {
     flex: 1;
+  }
+
+  .test-time-form {
+    grid-template-columns: 1fr;
   }
 }

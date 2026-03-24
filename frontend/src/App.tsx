@@ -1,5 +1,13 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { createInvestment, cancelInvestment, getInvestmentSummaryByUser, listInvestmentsByUser } from './features/investments/api';
+import {
+  advanceTestTimeDays,
+  advanceTestTimeMonths,
+  getTestTime,
+  resetTestTime,
+  setTestTime,
+  type TestTimeResponse,
+} from './features/test-time/api';
 import { createUser, listUsers } from './features/users/api';
 import { createWithdraw } from './features/withdraw/api';
 import { formatDate, formatMoney, humanizeStatus } from './lib/format';
@@ -10,6 +18,18 @@ type WalletRegistry = Record<number, number>;
 
 function toIsoFromDateInput(date: string): string {
   return new Date(`${date}T00:00:00`).toISOString();
+}
+
+function formatDateTime(date: string): string {
+  const parsed = new Date(date);
+  if (Number.isNaN(parsed.getTime())) {
+    return '-';
+  }
+
+  return new Intl.DateTimeFormat('pt-BR', {
+    dateStyle: 'short',
+    timeStyle: 'medium',
+  }).format(parsed);
 }
 
 function getErrorMessage(error: unknown): string {
@@ -38,6 +58,8 @@ const emptySummary: InvestmentSummary = {
 };
 
 export default function App() {
+  const isTestTimeUiEnabled = import.meta.env.VITE_ENABLE_TEST_TIME_UI === 'true';
+
   const [users, setUsers] = useState<User[]>([]);
   const [usersLoading, setUsersLoading] = useState(false);
   const [usersError, setUsersError] = useState<string | null>(null);
@@ -68,6 +90,14 @@ export default function App() {
 
   const [globalMessage, setGlobalMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [testTimeNow, setTestTimeNow] = useState<string | null>(null);
+  const [testTimeLoading, setTestTimeLoading] = useState(false);
+  const [testTimeError, setTestTimeError] = useState<string | null>(null);
+  const [isTestTimeApiAvailable, setIsTestTimeApiAvailable] = useState<boolean | null>(null);
+  const [testTimeDaysInput, setTestTimeDaysInput] = useState('1');
+  const [testTimeMonthsInput, setTestTimeMonthsInput] = useState('1');
+  const [testTimeSetDateInput, setTestTimeSetDateInput] = useState('');
 
   const selectedUser = useMemo(
     () => users.find((item) => item.id === selectedUserId) ?? null,
@@ -127,6 +157,14 @@ export default function App() {
     }
   }
 
+  async function refreshSelectedUserData() {
+    if (!selectedUserId) {
+      return;
+    }
+
+    await loadInvestmentsAndSummary(selectedUserId);
+  }
+
   useEffect(() => {
     void loadUsers();
   }, []);
@@ -152,6 +190,79 @@ export default function App() {
       setWalletIdInput(String(walletRegistry[selectedUserId]));
     }
   }, [selectedUserId, walletRegistry]);
+
+  useEffect(() => {
+    if (!isTestTimeUiEnabled) {
+      return;
+    }
+
+    let ignore = false;
+
+    async function loadTestClock() {
+      setTestTimeLoading(true);
+      setTestTimeError(null);
+
+      try {
+        const response = await getTestTime();
+
+        if (!ignore) {
+          setTestTimeNow(response.now);
+          setIsTestTimeApiAvailable(true);
+        }
+      } catch (error) {
+        if (!ignore) {
+          if (error instanceof HttpError && error.status === 404) {
+            setTestTimeError('API de tempo de teste não está habilitada no backend.');
+          } else {
+            setTestTimeError(getErrorMessage(error));
+          }
+
+          setIsTestTimeApiAvailable(false);
+          setTestTimeNow(null);
+        }
+      } finally {
+        if (!ignore) {
+          setTestTimeLoading(false);
+        }
+      }
+    }
+
+    void loadTestClock();
+
+    return () => {
+      ignore = true;
+    };
+  }, [isTestTimeUiEnabled]);
+
+  async function handleTestTimeAction(action: () => Promise<TestTimeResponse>, successMessage: string) {
+    setGlobalMessage(null);
+    setTestTimeError(null);
+    setIsSubmitting(true);
+    setTestTimeLoading(true);
+
+    try {
+      const response = await action();
+      setTestTimeNow(response.now);
+      setIsTestTimeApiAvailable(true);
+      await refreshSelectedUserData();
+      setGlobalMessage(successMessage);
+    } catch (error) {
+      let message = getErrorMessage(error);
+
+      if (error instanceof HttpError && error.status === 404) {
+        message = 'API de tempo de teste não está habilitada no backend.';
+        setTestTimeError(message);
+        setIsTestTimeApiAvailable(false);
+      } else {
+        setTestTimeError(message);
+      }
+
+      setGlobalMessage(message);
+    } finally {
+      setIsSubmitting(false);
+      setTestTimeLoading(false);
+    }
+  }
 
   async function handleCreateUser(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -192,9 +303,7 @@ export default function App() {
       setInitialAmountInput('');
       setInvestedAtInput('');
       setGlobalMessage('Investimento criado com sucesso.');
-      if (selectedUserId) {
-        await loadInvestmentsAndSummary(selectedUserId);
-      }
+      await refreshSelectedUserData();
     } catch (error) {
       setGlobalMessage(getErrorMessage(error));
     } finally {
@@ -217,9 +326,7 @@ export default function App() {
       setWithdrawDateInput('');
       setWithdrawNotesInput('');
       setGlobalMessage('Saque realizado com sucesso.');
-      if (selectedUserId) {
-        await loadInvestmentsAndSummary(selectedUserId);
-      }
+      await refreshSelectedUserData();
     } catch (error) {
       setGlobalMessage(getErrorMessage(error));
     } finally {
@@ -234,9 +341,7 @@ export default function App() {
     try {
       await cancelInvestment(investmentId);
       setGlobalMessage('Investimento cancelado com sucesso.');
-      if (selectedUserId) {
-        await loadInvestmentsAndSummary(selectedUserId);
-      }
+      await refreshSelectedUserData();
     } catch (error) {
       setGlobalMessage(getErrorMessage(error));
     } finally {
@@ -315,6 +420,136 @@ export default function App() {
         </header>
 
         {globalMessage ? <p className="banner">{globalMessage}</p> : null}
+
+        {isTestTimeUiEnabled ? (
+          <section className="test-time-panel">
+            <div className="test-time-header">
+              <h3>Avançar tempo</h3>
+              <span className="test-time-now">
+                Agora: {testTimeNow ? formatDateTime(testTimeNow) : 'indisponível'}
+              </span>
+            </div>
+
+            {testTimeLoading ? <p className="state-text">Sincronizando relógio de teste...</p> : null}
+            {testTimeError ? <p className="state-text error">{testTimeError}</p> : null}
+
+            <div className="test-time-actions">
+              <button
+                type="button"
+                className="outline-btn"
+                onClick={() => void handleTestTimeAction(() => advanceTestTimeDays(1), 'Tempo avançado em 1 dia.')}
+                disabled={isSubmitting || testTimeLoading || !isTestTimeApiAvailable}
+              >
+                +1 dia
+              </button>
+              <button
+                type="button"
+                className="outline-btn"
+                onClick={() => void handleTestTimeAction(() => advanceTestTimeMonths(1), 'Tempo avançado em 1 mês.')}
+                disabled={isSubmitting || testTimeLoading || !isTestTimeApiAvailable}
+              >
+                +1 mês
+              </button>
+              <button
+                type="button"
+                className="outline-btn"
+                onClick={() => void handleTestTimeAction(() => resetTestTime(), 'Relógio de teste resetado.')}
+                disabled={isSubmitting || testTimeLoading || !isTestTimeApiAvailable}
+              >
+                Resetar
+              </button>
+            </div>
+
+            <form
+              className="test-time-form"
+              onSubmit={(event) => {
+                event.preventDefault();
+                const days = Number(testTimeDaysInput);
+
+                if (!Number.isInteger(days) || days <= 0) {
+                  setGlobalMessage('Informe um número inteiro positivo de dias.');
+                  return;
+                }
+
+                void handleTestTimeAction(() => advanceTestTimeDays(days), `Tempo avançado em ${days} dia(s).`);
+              }}
+            >
+              <label>
+                Avançar dias
+                <input
+                  value={testTimeDaysInput}
+                  onChange={(event) => setTestTimeDaysInput(event.target.value)}
+                  type="number"
+                  min={1}
+                  step={1}
+                  inputMode="numeric"
+                />
+              </label>
+              <button type="submit" className="outline-btn" disabled={isSubmitting || testTimeLoading || !isTestTimeApiAvailable}>
+                Aplicar
+              </button>
+            </form>
+
+            <form
+              className="test-time-form"
+              onSubmit={(event) => {
+                event.preventDefault();
+                const months = Number(testTimeMonthsInput);
+
+                if (!Number.isInteger(months) || months <= 0) {
+                  setGlobalMessage('Informe um número inteiro positivo de meses.');
+                  return;
+                }
+
+                void handleTestTimeAction(() => advanceTestTimeMonths(months), `Tempo avançado em ${months} mês(es).`);
+              }}
+            >
+              <label>
+                Avançar meses
+                <input
+                  value={testTimeMonthsInput}
+                  onChange={(event) => setTestTimeMonthsInput(event.target.value)}
+                  type="number"
+                  min={1}
+                  step={1}
+                  inputMode="numeric"
+                />
+              </label>
+              <button type="submit" className="outline-btn" disabled={isSubmitting || testTimeLoading || !isTestTimeApiAvailable}>
+                Aplicar
+              </button>
+            </form>
+
+            <form
+              className="test-time-form"
+              onSubmit={(event) => {
+                event.preventDefault();
+
+                if (!testTimeSetDateInput) {
+                  setGlobalMessage('Informe uma data para definir o relógio de teste.');
+                  return;
+                }
+
+                void handleTestTimeAction(
+                  () => setTestTime(toIsoFromDateInput(testTimeSetDateInput)),
+                  'Data do relógio de teste atualizada.',
+                );
+              }}
+            >
+              <label>
+                Definir data
+                <input
+                  value={testTimeSetDateInput}
+                  onChange={(event) => setTestTimeSetDateInput(event.target.value)}
+                  type="date"
+                />
+              </label>
+              <button type="submit" className="outline-btn" disabled={isSubmitting || testTimeLoading || !isTestTimeApiAvailable}>
+                Definir
+              </button>
+            </form>
+          </section>
+        ) : null}
 
         <section className="cards-grid">
           <article className="card">
