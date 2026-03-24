@@ -6,6 +6,7 @@ import {
 } from "../models/investment.model";
 import {
   CreateInvestmentService,
+  GetInvestmentDetailsService,
   GetInvestmentsByUserService,
 } from "../services/investmentServices";
 
@@ -61,6 +62,30 @@ export async function investmentRoutes(server: FastifyInstance) {
           error: "Validation failed",
           details: error.flatten(),
         });
+      }
+
+      const errorMessage =
+        error instanceof Error ? error.message : "An unknown error occurred";
+      return res.status(500).send({ error: errorMessage });
+    }
+  });
+
+  server.get("/:investmentId", async (req, res) => {
+    try {
+      const { investmentId } = req.params as { investmentId: string };
+      const parsedInvestmentId = Number(investmentId);
+
+      if (!Number.isInteger(parsedInvestmentId) || parsedInvestmentId <= 0) {
+        return res.status(422).send({ error: "Invalid investment id" });
+      }
+
+      const getInvestmentDetailsService = new GetInvestmentDetailsService();
+      const investment = await getInvestmentDetailsService.getById(parsedInvestmentId);
+
+      return res.status(200).send(investment);
+    } catch (error) {
+      if (error instanceof Error && error.message === "INVESTMENT_NOT_FOUND") {
+        return res.status(404).send({ error: "Investment not found" });
       }
 
       const errorMessage =

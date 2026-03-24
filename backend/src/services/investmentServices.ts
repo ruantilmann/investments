@@ -1,6 +1,7 @@
 import { Prisma } from "../../generated/prisma/client.ts";
 import { InvestmentStatus } from "../../generated/prisma/enums.ts";
 import { prisma } from "../lib/prisma.ts";
+import { calculateCompoundBalance } from "../domain/investmentMath.ts";
 import type {
   InvestmentInput,
   ListInvestmentsByUserQueryInput,
@@ -36,6 +37,57 @@ export class CreateInvestmentService {
     });
 
     return investment;
+  }
+}
+
+export class GetInvestmentDetailsService {
+  async getById(investmentId: number) {
+    const investment = await prisma.investment.findUnique({
+      where: { id: investmentId },
+      include: {
+        wallet: {
+          select: {
+            id: true,
+            userId: true,
+          },
+        },
+        withdraw: true,
+      },
+    });
+
+    if (!investment) {
+      throw new Error("INVESTMENT_NOT_FOUND");
+    }
+
+    const referenceDate = investment.withdrawnAt ?? new Date();
+    const calculated = calculateCompoundBalance(
+      investment.initialAmount,
+      investment.investedAt,
+      referenceDate,
+    );
+
+    const yieldAmount = investment.withdraw
+      ? investment.withdraw.profitAmount
+      : calculated.yieldAmount;
+    const expectedBalance = investment.withdraw
+      ? investment.withdraw.grossAmount
+      : calculated.expectedBalance;
+
+    return {
+      id: investment.id,
+      walletId: investment.walletId,
+      userId: investment.wallet.userId,
+      initialAmount: investment.initialAmount,
+      yieldAmount,
+      expectedBalance,
+      monthsElapsed: calculated.monthsElapsed,
+      investedAt: investment.investedAt,
+      status: investment.status,
+      withdrawnAt: investment.withdrawnAt,
+      withdraw: investment.withdraw,
+      createdAt: investment.createdAt,
+      updatedAt: investment.updatedAt,
+    };
   }
 }
 

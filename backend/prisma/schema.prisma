@@ -53,8 +53,8 @@ model Investment {
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
-  wallet     Wallet      @relation(fields: [walletId], references: [id], onDelete: Cascade)
-  withdraws  Withdraw[]
+  wallet    Wallet    @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  withdraw  Withdraw?
 
   @@index([walletId])
   @@index([status])
@@ -64,7 +64,7 @@ model Investment {
 
 model Withdraw {
   id             Int    @id @default(autoincrement())
-  investmentId   Int
+  investmentId   Int    @unique
   grossAmount    Decimal
   taxAmount      Decimal @default(0)
   netAmount      Decimal
@@ -75,7 +75,6 @@ model Withdraw {
 
   investment Investment @relation(fields: [investmentId], references: [id], onDelete: Cascade)
 
-  @@index([investmentId])
   @@index([withdrawDate])
   @@index([investmentId, withdrawDate])
   @@map("withdraws")
