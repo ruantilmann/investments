@@ -217,7 +217,7 @@ export async function investmentRoutes(server: FastifyInstance) {
     }
   });
 
-  server.patch("/:id/status", {
+  server.patch("/:id/cancel-investment", {
     schema: {
       tags: ["Investments"],
       summary: "Cancelar investimento ativo",
