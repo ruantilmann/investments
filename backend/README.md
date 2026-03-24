@@ -88,112 +88,21 @@ npm run test
 - `typescript`
   - Segurança de tipos no domínio financeiro e redução de regressões.
 
-## Endpoints de tempo para testes (test-only)
+## Documentação da API (Swagger)
 
-### Motivação
+A API é documentada com Swagger/OpenAPI e pode ser acessada localmente pelos seguintes endpoints:
 
-No cenário de investimentos, algumas regras dependem da passagem de tempo (rendimento composto mensal e faixas de tributação por idade do investimento).
+- UI interativa: `http://localhost:3000/documentation`
+- JSON OpenAPI: `http://localhost:3000/documentation/json`
+- YAML OpenAPI: `http://localhost:3000/documentation/yaml`
 
-Para validar corretamente esses cenários sem esperar meses reais, adotamos uma estratégia de relógio controlado (`Clock`) com implementação fake para testes. Isso permite simular avanço de tempo de forma determinística e repetir testes sempre com o mesmo resultado.
+A documentação contém os contratos de request/response das rotas de usuários, investimentos, saques e também das rotas de tempo para testes quando habilitadas.
 
-### Estratégia adotada
+### Como habilitar a documentação de rotas test-only
 
-- `SystemClock`: relógio real para execução normal.
-- `FakeClock`: relógio controlado para testes.
-- `clockProvider`: seleciona automaticamente o relógio de teste quando:
-  - `NODE_ENV=test`, ou
-  - `ENABLE_TEST_TIME_API=true`.
+Para exibir as rotas de tempo de teste (`/api/test/...`) na documentação, rode o backend com uma das opções:
 
-Com isso, conseguimos:
-- testar cálculo de rendimento e imposto com previsibilidade
-- reproduzir cenários de borda (12 meses, 24 meses etc.)
-- manter produção segura sem dependência de endpoint de tempo
+- `ENABLE_TEST_TIME_API=true`, ou
+- `NODE_ENV=test`
 
-### Segurança
-
-As rotas abaixo só são registradas em ambiente controlado (`NODE_ENV=test` ou `ENABLE_TEST_TIME_API=true`).
-
-### Base das rotas
-
-`/api/test`
-
-### Rotas disponíveis
-
-- `GET /api/test/time`
-  - Retorna a data atual do relógio de teste.
-
-- `POST /api/test/time/set`
-  - Define data absoluta do relógio.
-  - Payload:
-
-```json
-{
-  "date": "2026-01-15T00:00:00.000Z"
-}
-```
-
-- `POST /api/test/time/advance-months`
-  - Avança o relógio em meses.
-  - Payload:
-
-```json
-{
-  "months": 1
-}
-```
-
-- `POST /api/test/time/advance-days`
-  - Avança o relógio em dias.
-  - Payload:
-
-```json
-{
-  "days": 10
-}
-```
-
-- `POST /api/test/time/reset`
-  - Reseta o relógio para o horário atual da máquina.
-
-## Endpoints principais da API
-
-### Usuários
-- `POST /api/users/newUser`
-- `GET /api/users/allUsers`
-- `GET /api/users/:id`
-- `GET /api/users/search?name=...`
-- `GET /api/users/searchByEmail?email=...`
-
-### Investimentos
-- `POST /api/investments/newInvestment`
-- `GET /api/investments/user/:userId?page=1&limit=10&status=ACTIVE`
-- `GET /api/investments/user/:userId/summary`
-- `GET /api/investments/:investmentId`
-
-### Saque
-- `POST /api/withdraw/newWithdraw`
-
-## Documentação da API
-
-Atualmente a documentação está centralizada neste README.
-
-### Exemplo do endpoint de summary
-
-`GET /api/investments/user/4/summary`
-
-Resposta:
-
-```json
-{
-  "userId": 4,
-  "totalInvested": "1500.00",
-  "totalActiveInvested": "500.00",
-  "totalExpectedBalanceActive": "513.13",
-  "totalWithdrawnGross": "1067.89",
-  "totalWithdrawnNet": "1055.33",
-  "totalTaxPaid": "12.56",
-  "countInvestments": 2,
-  "countActive": 1,
-  "countWithdrawn": 1
-}
-```
+Essas rotas devem permanecer desabilitadas em produção.
